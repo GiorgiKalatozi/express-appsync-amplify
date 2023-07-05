@@ -1,16 +1,41 @@
-import express, { Request, Response } from "express";
+import { ApolloServer } from "@apollo/server";
+import { expressMiddleware } from "@apollo/server/express4";
+import { ApolloServerPluginDrainHttpServer } from "@apollo/server/plugin/drainHttpServer";
+import express from "express";
+import http from "http";
+import cors from "cors";
+import bodyParser from "body-parser";
 
-const port = 5000;
+// The GraphQL schema
+const typeDefs = `#graphql
+  type Query {
+    hello: String
+    lavapi: String
+    sayMyName: String
+  }
+`;
+
+// A map of functions which return data for the schema.
+const resolvers = {
+  Query: {
+    hello: () => "Hello World",
+    lavapi: () => "LavaPi",
+    sayMyName: () => "Say My Name",
+  },
+};
 
 const app = express();
+const httpServer = http.createServer(app);
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("HELLO FROM EXPRESS TYPESCRIPT SERVER");
+// Set up Apollo Server
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
+  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 });
-app.get("/about", (req: Request, res: Response) => {
-  res.send("about us hii king ragnar say my name");
-});
+await server.start();
 
-app.listen(port, () => {
-  console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
-});
+app.use(cors(), bodyParser.json(), expressMiddleware(server));
+
+await new Promise((resolve) => httpServer.listen({ port: 4000 }));
+console.log(`🚀 Server ready at http://localhost:4000`);
