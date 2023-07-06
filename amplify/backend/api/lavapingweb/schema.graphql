@@ -1,0 +1,209 @@
+enum MessageActionEnum {
+  DELIVER_MESSAGE
+  SEEN_MESSAGE
+  TRANSFER_MESSAGE
+}
+
+type MessageActions @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  action: MessageActionEnum
+  user_id: ID!
+  message_id: ID!
+  message_owner: ID!
+  created_at: AWSTimestamp!
+}
+
+type SingleChats @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  user_id: ID!
+  chat_id: ID!
+  owner_id: ID!
+  workspace_id: ID
+  is_initial: Boolean!
+  title_initials: String
+  color: String
+  muted_until: AWSTimestamp
+  type: ChatsTypeEnum!
+  last_messag: ChatLastMessage
+  chat_members: [ID!]
+  is_admin: Boolean!
+  is_active: Boolean!
+  created_at: AWSTimestamp!
+  title: Users! @hasOne
+}
+
+type Chats @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  user_id: ID!
+  chat_id: ID!
+  owner_id: ID!
+  workspace_id: ID!
+  is_initial: Boolean!
+  title: String
+  title_initials: String
+  color: String!
+  muted_until: AWSTimestamp
+  type: ChatsTypeEnum!
+  last_message: ChatLastMessage
+  chat_members: [ID!]
+  is_admin: Boolean!
+  is_active: Boolean!
+  created_at: AWSTimestamp!
+}
+
+type SeenMessages @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  message_id: ID!
+  seener_id: ID!
+  owner_id: ID!
+  seen_at: AWSTimestamp!
+}
+
+type Messages @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  message_id: ID!
+  chat_id: ID!
+  user_id: ID!
+  workspace_id: ID!
+  is_initial: Boolean!
+  initiator_id: ID!
+  content: String
+  status: MessagesStatusEnum
+  hidden: Boolean
+  forwarded_from: ID
+  attachment: String
+  replied_to: ID
+  created_at: AWSTimestamp
+  updated_at: AWSTimestamp
+}
+
+type UnreadMessages @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  message_id: ID!
+  chat_id: ID!
+  user_id: ID!
+  workspace_id: ID!
+  is_initial: Boolean!
+  initiator_id: ID!
+  content: String
+  status: MessagesStatusEnum
+  hidden: Boolean
+  forwarded_from: ID
+  attachment: String
+  replied_to: ID
+  created_at: AWSTimestamp
+  updated_at: AWSTimestamp
+}
+
+type Workspaces @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  slug: String!
+  workspace_users: [ID!]
+  address: [Address]
+  email: [AWSEmail]
+  working_hours: [WorkspaceWorkingHours]
+  phone: [PhoneNumber]
+  image: Image
+  company_birthday: String
+  description: String
+  website_address: AWSURL
+  industry: WorkspaceIndustry
+  number_of_employees: WorkspaceNumberOfEmployees
+}
+
+type Address {
+  address: String
+  city: String
+  country_id: Int
+  country: String
+  state: String
+  zip_code: String
+}
+
+type PhoneNumber {
+  phone_number: String
+  prefix_id: Int
+  prefix: String
+  prefix_country_initials: String
+}
+
+type Image {
+  small: AWSURL
+  medium: AWSURL
+  large: AWSURL
+  x_large: AWSURL
+}
+
+type WorkspaceIndustry {
+  id: Int
+  name: String
+}
+
+type WorkspaceWorkingHours {
+  from: String
+  to: String
+  time_format: Int
+  timezone: Timezone
+}
+
+type DeliveredMessages @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  message_id: ID!
+  deliverer_id: ID!
+  owner_id: ID!
+  delivered_at: AWSTimestamp!
+}
+
+type WorkspaceNumberOfEmployees {
+  id: Int
+  quantity: String
+}
+
+type ChatLastMessage {
+  content: String
+  sender_id: ID!
+  created_at: AWSTimestamp!
+  status: MessagesStatusEnum!
+  users_seen: [ID!]
+}
+
+enum ChatsTypeEnum {
+  SINGLE
+  GROUP
+}
+
+enum ChatsRoleEnum {
+  OWNER
+  ADMIN
+  USER
+}
+
+enum MessagesStatusEnum {
+  SENT
+  DELIVERED
+  SEEN
+}
+
+type Users @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  email: AWSEmail!
+  first_name: String!
+  last_name: String!
+  full_name: String!
+  avatar: Image
+  color: String!
+  initials: String!
+  position: String
+  birthday: String
+  phone: PhoneNumber
+  location: Address
+  timezone: Timezone
+  text_status: String
+}
+
+type Timezone {
+  id: Int
+  name: String
+}
+ 
