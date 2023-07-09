@@ -280,67 +280,117 @@
 
 // startServer();
 
-import { ApolloClient, InMemoryCache, gql } from "@apollo/client/core";
-// import { SubscriptionClient } from "subscriptions-transport-ws";
-import { split } from "apollo-link";
-import { WebSocketLink } from "@apollo/client/link/ws";
+// import { ApolloClient, InMemoryCache, gql } from "@apollo/client/core";
+// // import { SubscriptionClient } from "subscriptions-transport-ws";
+// import { split } from "apollo-link";
+// import { WebSocketLink } from "@apollo/client/link/ws";
+// import { createHttpLink } from "apollo-link-http";
+// import { getMainDefinition } from "@apollo/client/utilities";
+
+// // Set up the WebSocket link
+// const wsLink = new WebSocketLink({
+//   uri: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
+//   options: {
+//     reconnect: true,
+//     connectionParams: {
+//       headers: {
+//         Authorization: "<your-auth-token>",
+//       },
+//     },
+//   },
+// });
+
+// // Set up the HTTP link
+// const httpLink = createHttpLink({
+//   uri: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
+// });
+
+// // Create the Apollo Client and configure the link
+// const link = split(
+//   ({ query }) => {
+//     const definition = getMainDefinition(query);
+//     return (
+//       definition.kind === "OperationDefinition" &&
+//       definition.operation === "subscription"
+//     );
+//   },
+//   wsLink,
+//   httpLink
+// );
+
+// const apolloClient = new ApolloClient({
+//   link,
+//   cache: new InMemoryCache(),
+// });
+
+// // Set up the subscription
+// const subscription = apolloClient.subscribe({
+//   query: gql`
+//     subscription OnMessageAdded {
+//       onMessageAdded {
+//         id
+//         text
+//       }
+//     }
+//   `,
+// });
+
+// subscription.subscribe({
+//   next: (data: any) => {
+//     console.log("Received new message:", data);
+//     // Process the new message data here
+//   },
+//   error: (error: any) => {
+//     console.error("Error in subscription:", error);
+//   },
+// });
+
+import express, { Request, Response } from "express";
+import AWSAppSyncClient from "aws-appsync";
+import { gql } from "graphql-tag";
+import fetch from "node-fetch";
 import { createHttpLink } from "apollo-link-http";
-import { getMainDefinition } from "@apollo/client/utilities";
 
-// Set up the WebSocket link
-const wsLink = new WebSocketLink({
-  uri: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
-  options: {
-    reconnect: true,
-    connectionParams: {
-      headers: {
-        Authorization: "<your-auth-token>",
-      },
-    },
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+createHttpLink({ uri: "/graphql", fetch: fetch as any });
+
+const awsAppSyncClient = new AWSAppSyncClient.default({
+  url: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
+  region: "eu-central-1",
+  auth: {
+    type: "API_KEY",
+    apiKey: "da2-ocri2idwujafvhh4ehse42ou3u",
   },
 });
 
-// Set up the HTTP link
-const httpLink = createHttpLink({
-  uri: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
-});
+const app = express();
+const port = 3000; // Replace with your desired port
 
-// Create the Apollo Client and configure the link
-const link = split(
-  ({ query }) => {
-    const definition = getMainDefinition(query);
-    return (
-      definition.kind === "OperationDefinition" &&
-      definition.operation === "subscription"
-    );
-  },
-  wsLink,
-  httpLink
-);
-
-const apolloClient = new ApolloClient({
-  link,
-  cache: new InMemoryCache(),
-});
-
-// Set up the subscription
-const subscription = apolloClient.subscribe({
-  query: gql`
-    subscription OnMessageAdded {
-      onMessageAdded {
-        id
-        text
+app.get("/messages", async (req: Request, res: Response) => {
+  const query = gql`
+    query {
+      listMessages {
+        items {
+          id
+          content
+          timestamp
+        }
       }
     }
-  `,
+  `;
+  try {
+    const response = await awsAppSyncClient.query({ query });
+    const messages = response.data;
+    console.log(messages);
+    res.json(messages);
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching messages." });
+  }
 });
 
-subscription.subscribe({
-  next: (data: any) => {
-    console.log("Received new message:", data);
-    // Process the new message data here
-  },
-  error: (error: any) => {
-    console.error("Error in subscription:", error);
-  },
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
 });
