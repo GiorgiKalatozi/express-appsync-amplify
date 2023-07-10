@@ -195,90 +195,7 @@
 //   console.log("Server is running on http://localhost:3000/graphql");
 // });
 
-// import express from "express";
-// import { ApolloServer, gql } from "apollo-server-express";
-// import { createHttpLink } from "apollo-link-http";
-// import fetch from "node-fetch";
-// import { ApolloClient, InMemoryCache } from "@apollo/client/core/index.js";
-
-// // Define your GraphQL schema
-// const typeDefs = gql`
-//   type Message {
-//     id: ID!
-//     content: String!
-//   }
-
-//   type Query {
-//     getMessage(id: ID!): Message
-//   }
-
-//   type Mutation {
-//     createMessage(content: String!): Message
-//   }
-// `;
-
-// console.log("hello world!");
-
-// // Define your resolvers
-// const resolvers = {
-//   Query: {
-//     getMessage: (_: any, { id }: { id: string }) => {
-//       // Implement your logic to fetch a message by ID from the Messages table
-//       const message = {
-//         id,
-//         content: "Hello, World!",
-//       };
-//       return message;
-//     },
-//   },
-//   Mutation: {
-//     createMessage: (_: any, { content }: { content: string }) => {
-//       // Implement your logic to create a new message in the Messages table
-//       const message = {
-//         id: "123",
-//         content,
-//       };
-//       console.log(message, "message");
-
-//       return message;
-//     },
-//   },
-// };
-
-// async function startServer() {
-//   const app = express();
-
-//   const apolloClient = new ApolloClient({
-//     link: createHttpLink({
-//       uri: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
-//       fetch: fetch as any,
-//       // headers: {
-//       //   // Set your AppSync authentication token here (e.g., Cognito JWT)
-//       //   Authorization: "<your-auth-token>",
-//       // },
-//     }),
-//     cache: new InMemoryCache(),
-//   });
-
-//   const server = new ApolloServer({
-//     typeDefs,
-//     resolvers,
-//     context: { client: apolloClient },
-//   });
-
-//   await server.start();
-
-//   server.applyMiddleware({ app });
-
-//   console.log(server, "server");
-
-//   const port = 4000;
-//   app.listen(port, () => {
-//     console.log(`🚀 Server ready at http://localhost:${port}`);
-//   });
-// }
-
-// startServer();
+/// variant 2
 
 // import { ApolloClient, InMemoryCache, gql } from "@apollo/client/core";
 // // import { SubscriptionClient } from "subscriptions-transport-ws";
@@ -345,52 +262,416 @@
 //   },
 // });
 
-import express, { Request, Response } from "express";
-import AWSAppSyncClient from "aws-appsync";
-import { gql } from "graphql-tag";
-import fetch from "node-fetch";
-import { createHttpLink } from "apollo-link-http";
+// import express, { Request, Response } from "express";
+// import AWSAppSyncClient from "aws-appsync";
+// import { gql } from "graphql-tag";
+// import fetch from "node-fetch";
+// import { createHttpLink } from "apollo-link-http";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-createHttpLink({ uri: "/graphql", fetch: fetch as any });
+// // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// createHttpLink({ uri: "/graphql", fetch: fetch as any });
 
-const awsAppSyncClient = new AWSAppSyncClient.default({
-  url: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
-  region: "eu-central-1",
-  auth: {
-    type: "API_KEY",
-    apiKey: "da2-ocri2idwujafvhh4ehse42ou3u",
-  },
-});
+// const awsAppSyncClient = new AWSAppSyncClient.default({
+//   url: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
+//   region: "eu-central-1",
+//   auth: {
+//     type: "API_KEY",
+//     apiKey: "da2-ocri2idwujafvhh4ehse42ou3u",
+//   },
+// });
 
-const app = express();
-const port = 3000; // Replace with your desired port
+// const app = express();
+// const port = 3000;
 
-app.get("/messages", async (req: Request, res: Response) => {
-  const query = gql`
-    query {
-      listMessages {
-        items {
-          id
-          content
-          timestamp
-        }
-      }
-    }
-  `;
-  try {
-    const response = await awsAppSyncClient.query({ query });
-    const messages = response.data;
-    console.log(messages);
-    res.json(messages);
-  } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while fetching messages." });
+// app.get("/messages", async (req: Request, res: Response) => {
+//   const query = gql`
+//     query {
+//       listMessages {
+//         items {
+//           id
+//           content
+//           timestamp
+//         }
+//       }
+//     }
+//   `;
+//   try {
+//     const response = await awsAppSyncClient.query({ query });
+//     const messages = response.data;
+//     console.log(messages);
+//     res.json(messages);
+//   } catch (error) {
+//     console.error(error);
+//     res
+//       .status(500)
+//       .json({ error: "An error occurred while fetching messages." });
+//   }
+// });
+
+// app.listen(port, () => {
+//   console.log(`Server is running on port ${port}`);
+// });
+
+// import express from "express";
+// import { ApolloServer, gql } from "apollo-server-express";
+// // import { createHttpLink } from "apollo-link-http";
+// // import fetch from "node-fetch";
+// import { ApolloClient, InMemoryCache } from "@apollo/client/core/index.js";
+// // import { split } from "@apollo/client/link/core";
+// // import { split, HttpLink } from "@apollo/client";
+// import { HttpLink } from "apollo-link-http";
+// import { getMainDefinition } from "@apollo/client/utilities";
+// import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
+// import { createClient } from "graphql-ws";
+// import split from "apollo-client";
+// // import { getMainDefinition } from "apollo-utilities";
+// // import { WebSocketLink } from "apollo-link-ws";
+
+// // Define your GraphQL schema
+// const typeDefs = gql`
+//   type Message {
+//     id: ID!
+//     content: String!
+//   }
+
+//   type Query {
+//     getMessage(id: ID!): Message
+//   }
+
+//   type Mutation {
+//     createMessage(content: String!): Message
+//   }
+// `;
+
+// console.log("hello world!");
+
+// const httpLink = new HttpLink({ uri: "/graphql", fetch });
+
+// const wsLink = new GraphQLWsLink(
+//   createClient({
+//     url: "wss://bs6z527jgvah3oy2cx3pdjmkvy.appsync-realtime-api.eu-central-1.amazonaws.com/graphql",
+//   })
+// );
+
+// const client = new ApolloClient({
+//   cache: new InMemoryCache(),
+//   link: httpLink,
+// });
+
+// // The split function takes three parameters:
+// //
+// // * A function that's called for each operation to execute
+// // * The Link to use for an operation if the function returns a "truthy" value
+// // * The Link to use for an operation if the function returns a "falsy" value
+// const splitLink = split(
+//   ({ query }: any) => {
+//     const definition = getMainDefinition(query);
+//     return (
+//       definition.kind === "OperationDefinition" &&
+//       definition.operation === "subscription"
+//     );
+//   },
+//   wsLink,
+//   httpLink
+// );
+
+// const response = await client.query({
+//   query: gql`
+//     query {
+//       listMessages {
+//         items {
+//           id
+//           content
+//           timestamp
+//       }
+//     }
+//   `,
+// });
+
+// // Define your resolvers
+// const resolvers = {
+//   Query: {
+//     getMessage: (_: any, { id }: { id: string }) => {
+//       // Implement your logic to fetch a message by ID from the Messages table
+//       const message = {
+//         id,
+//         content: "Hello, World!",
+//       };
+//       return message;
+//     },
+//   },
+//   Mutation: {
+//     createMessage: (_: any, { content }: { content: string }) => {
+//       // Implement your logic to create a new message in the Messages table
+//       const message = {
+//         id: "123",
+//         content,
+//       };
+//       console.log(message, "message");
+
+//       return message;
+//     },
+//   },
+// };
+
+// async function startServer() {
+//   const app = express();
+
+//   const apolloClient = new ApolloClient({
+//     // link: createHttpLink({
+//     //   uri: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
+//     //   fetch: fetch as any,
+//     //   // headers: {
+//     //   //   // Set your AppSync authentication token here (e.g., Cognito JWT)
+//     //   //   Authorization: "<your-auth-token>",
+//     //   // },
+//     // }),
+//     // cache: new InMemoryCache(),
+//     link: splitLink,
+//     cache: new InMemoryCache(),
+//   });
+
+//   const server = new ApolloServer({
+//     typeDefs,
+//     resolvers,
+//     context: { client: apolloClient },
+//   });
+
+//   await server.start();
+
+//   server.applyMiddleware({ app });
+
+//   console.log(server, "server");
+
+//   const port = 4000;
+//   app.listen(port, () => {
+//     console.log(`🚀 Server ready at http://localhost:${port}`);
+//   });
+// }
+
+// startServer();
+// import express from "express";
+// import { ApolloServer, gql } from "apollo-server-express";
+// // import { ApolloClient, InMemoryCache, split } from "@apollo/client";
+// import { ApolloClient, InMemoryCache } from "@apollo/client/core";
+// import { split } from "@apollo/client/link/core";
+// import { HttpLink } from "apollo-link-http";
+// import { getMainDefinition } from "@apollo/client/utilities";
+// import { WebSocketLink } from "@apollo/client/link/ws";
+// import { createClient } from "graphql-ws";
+
+// // Define your GraphQL schema
+// const typeDefs = gql`
+//   type Message {
+//     id: ID!
+//     content: String!
+//   }
+
+//   type Query {
+//     getMessage(id: ID!): Message
+//   }
+
+//   type Mutation {
+//     createMessage(content: String!): Message
+//   }
+// `;
+
+// const httpLink = new HttpLink({ uri: "/graphql" });
+
+// const wsLink = new WebSocketLink(
+//   createClient({
+//     url: "wss://bs6z527jgvah3oy2cx3pdjmkvy.appsync-realtime-api.eu-central-1.amazonaws.com/graphql",
+//   })
+// );
+
+// const splitLink = split(
+//   ({ query }: any) => {
+//     const definition = getMainDefinition(query);
+//     return (
+//       definition.kind === "OperationDefinition" &&
+//       definition.operation === "subscription"
+//     );
+//   },
+//   wsLink,
+//   httpLink
+// );
+
+// // Define your resolvers
+// const resolvers = {
+//   Query: {
+//     getMessage: (_: any, { id }: { id: string }) => {
+//       // Implement your logic to fetch a message by ID from the Messages table
+//       const message = {
+//         id,
+//         content: "Hello, World!",
+//       };
+//       return message;
+//     },
+//   },
+//   Mutation: {
+//     createMessage: (_: any, { content }: { content: string }) => {
+//       // Implement your logic to create a new message in the Messages table
+//       const message = {
+//         id: "123",
+//         content,
+//       };
+//       console.log(message, "message");
+
+//       return message;
+//     },
+//   },
+// };
+
+// async function startServer() {
+//   const app = express();
+
+//   const apolloClient = new ApolloClient({
+//     link: splitLink,
+//     cache: new InMemoryCache(),
+//   });
+
+//   const server = new ApolloServer({
+//     typeDefs,
+//     resolvers,
+//     context: { client: apolloClient },
+//   });
+
+//   await server.start();
+
+//   server.applyMiddleware({ app });
+
+//   const port = 4000;
+//   app.listen(port, () => {
+//     console.log(`🚀 Server ready at http://localhost:${port}`);
+//   });
+// }
+
+// startServer();
+
+// import { ApolloClient, InMemoryCache } from "@apollo/client/core";
+// import { WebSocketLink } from "apollo-link-ws";
+// import { SubscriptionClient } from "subscriptions-transport-ws";
+// import { split } from "apollo-link";
+// import { getMainDefinition } from "apollo-utilities";
+// import { HttpLink } from "apollo-link-http";
+
+// // Define your subscription query
+// const subscriptionQuery = gql`
+//   subscription {
+//     // Define your subscription query here
+//   }
+// `;
+
+// async function runSubscription() {
+//   const httpLink = new HttpLink({ uri: "/graphql" });
+
+//   const wsLink = new WebSocketLink({
+//     uri: "wss://your-appsync-endpoint",
+//     options: {
+//       reconnect: true,
+//       connectionParams: {
+//         // Include any necessary authentication parameters
+//         // (e.g., AWS access key, Cognito JWT, etc.)
+//       },
+//     },
+//   });
+
+//   const subscriptionClient = new SubscriptionClient(
+//     "wss://your-appsync-endpoint",
+//     {
+//       // Include any necessary authentication parameters
+//       // (e.g., AWS access key, Cognito JWT, etc.)
+//     }
+//   );
+
+//   const splitLink = split(
+//     ({ query }) => {
+//       const definition = getMainDefinition(query);
+//       return (
+//         definition.kind === "OperationDefinition" &&
+//         definition.operation === "subscription"
+//       );
+//     },
+//     wsLink,
+//     httpLink
+//   );
+
+//   const client = new ApolloClient({
+//     link: splitLink,
+//     cache: new InMemoryCache(),
+//   });
+
+//   const subscription = client.subscribe({
+//     query: subscriptionClient,
+//   });
+
+//   subscription.subscribe({
+//     next(data: any) {
+//       // Handle the received subscription data
+//       console.log(data);
+//     },
+//     error(error: any) {
+//       // Handle any subscription errors
+//       console.error(error);
+//     },
+//   });
+// }
+
+// runSubscription().catch((error) => {
+//   console.error("An error occurred:", error);
+// });
+import { ApolloServer } from "@apollo/server";
+import { startStandaloneServer } from "@apollo/server/standalone";
+
+// A schema is a collection of type definitions (hence "typeDefs")
+// that together define the "shape" of queries that are executed against
+// your data.
+const typeDefs = `#graphql
+  # Comments in GraphQL strings (such as this one) start with the hash (#) symbol.
+
+  # This "Book" type defines the queryable fields for every book in our data source.
+  type Book {
+    title: String
+    author: String
   }
+
+  # The "Query" type is special: it lists all of the available queries that
+  # clients can execute, along with the return type for each. In this
+  # case, the "books" query returns an array of zero or more Books (defined above).
+  type Query {
+    books: [Book]
+  }
+`;
+const books = [
+  {
+    title: "The Awakening",
+    author: "Kate Chopin",
+  },
+  {
+    title: "City of Glass",
+    author: "Paul Auster",
+  },
+];
+// Resolvers define how to fetch the types defined in your schema.
+// This resolver retrieves books from the "books" array above.
+const resolvers = {
+  Query: {
+    books: () => books,
+  },
+};
+// The ApolloServer constructor requires two parameters: your schema
+// definition and your set of resolvers.
+const server = new ApolloServer({
+  typeDefs,
+  resolvers,
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+// Passing an ApolloServer instance to the `startStandaloneServer` function:
+//  1. creates an Express app
+//  2. installs your ApolloServer instance as middleware
+//  3. prepares your app to handle incoming requests
+const { url } = await startStandaloneServer(server, {
+  listen: { port: 4000 },
 });
+
+console.log(`🚀  Server ready at: ${url}`);
