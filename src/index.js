@@ -209,65 +209,106 @@
 //   console.error("Error starting Apollo Server:", error);
 // });
 
-import { ApolloServer } from "@apollo/server";
-import { startStandaloneServer } from "@apollo/server/standalone";
+// import { ApolloServer } from "@apollo/server";
+// import { startStandaloneServer } from "@apollo/server/standalone";
 
-const messages = [{ name: "gigachad", lastName: "walking w" }];
+// const messages = [{ name: "gigachad", lastName: "walking w" }];
 
-const typeDefs = `#graphql
+// const typeDefs = `#graphql
 
-  # This "Book" type defines the queryable fields for every book in our data source.
- type Messages {
-    name: String
-    lastName: String
-    id: ID!
-    message_id: ID!
-    chat_id: ID!
-    user_id: ID!
-    workspace_id: ID!
-    is_initial: Boolean!
-    initiator_id: ID!
-    content: String
-    status: MessagesStatusEnum
-    hidden: Boolean
-    forwarded_from: ID
-    attachment: String
-    replied_to: ID
-    created_at: Int
-    updated_at: Int
-  }
+//   # This "Book" type defines the queryable fields for every book in our data source.
+//  type Messages {
+//     name: String
+//     lastName: String
+//     id: ID!
+//     message_id: ID!
+//     chat_id: ID!
+//     user_id: ID!
+//     workspace_id: ID!
+//     is_initial: Boolean!
+//     initiator_id: ID!
+//     content: String
+//     status: MessagesStatusEnum
+//     hidden: Boolean
+//     forwarded_from: ID
+//     attachment: String
+//     replied_to: ID
+//     created_at: Int
+//     updated_at: Int
+//   }
 
-  enum MessagesStatusEnum {
-    SENT
-    DELIVERED
-    SEEN
-    }
+//   enum MessagesStatusEnum {
+//     SENT
+//     DELIVERED
+//     SEEN
+//     }
 
+//   type Query {
+//     messages: [Messages]
+//   }
+// `;
+// // definition and your set of resolvers.
+
+// const resolvers = {
+//   Query: {
+//     messages: () => messages,
+//   },
+// };
+
+// const server = new ApolloServer({
+//   url: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
+//   typeDefs,
+//   resolvers,
+// });
+
+// // Passing an ApolloServer instance to the `startStandaloneServer` function:
+// //  1. creates an Express app
+// //  2. installs your ApolloServer instance as middleware
+// //  3. prepares your app to handle incoming requests
+// const { url } = await startStandaloneServer(server, {
+//   url: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
+//   listen: { port: 4000 },
+// });
+
+// console.log(`🚀  Server ready at: ${url}`);
+
+import { buildSchema } from "graphql";
+import ws from "ws";
+import { useServer } from "graphql-ws/lib/use/ws";
+
+// Construct a schema, using GraphQL schema language
+const schema = buildSchema(`
   type Query {
-    messages: [Messages]
+    hello: String
   }
-`;
-// definition and your set of resolvers.
+  type Subscription {
+    greetings: String
+  }
+`);
 
-const resolvers = {
-  Query: {
-    messages: () => messages,
+// The roots provide resolvers for each GraphQL operation
+const roots = {
+  query: {
+    hello: () => "Hello World!",
+  },
+  subscription: {
+    greetings: async function* sayHiIn5Languages() {
+      for (const hi of ["Hi", "Bonjour", "Hola", "Ciao", "Zdravo"]) {
+        yield { greetings: hi };
+      }
+    },
   },
 };
 
-const server = new ApolloServer({
-  url: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
-  typeDefs,
-  resolvers,
+const server = new ws.Server({
+  port: 4000,
+  path: "/graphql",
 });
 
-// Passing an ApolloServer instance to the `startStandaloneServer` function:
-//  1. creates an Express app
-//  2. installs your ApolloServer instance as middleware
-//  3. prepares your app to handle incoming requests
-const { url } = await startStandaloneServer(server, {
-  url: "https://bs6z527jgvah3oy2cx3pdjmkvy.appsync-api.eu-central-1.amazonaws.com/graphql",
-  listen: { port: 4000 },
-});
+useServer(
+  // from the previous step
+  { schema, roots },
+  server
+);
 
-console.log(`🚀  Server ready at: ${url}`);
+console.log("Listening to port 4000");
